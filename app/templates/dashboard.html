@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Expense Manager{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-600">Welcome back, {{ user.name or user.user_id }}!</p>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    {% if success %}
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+        <span class="material-symbols-outlined mr-2">check_circle</span>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Net Worth Card -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-semibold">Net Worth</h3>
+                <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+            </div>
+            <p class="text-3xl font-bold">${{ "%.2f"|format(net_worth) }}</p>
+            <p class="text-blue-100 text-sm mt-2">Total Assets - Liabilities</p>
+        </div>
+
+        <!-- Monthly Income Card -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-semibold">Monthly Income</h3>
+                <span class="material-symbols-outlined text-3xl">trending_up</span>
+            </div>
+            <p class="text-3xl font-bold">${{ "%.2f"|format(monthly_income) }}</p>
+            <p class="text-green-100 text-sm mt-2">This month</p>
+        </div>
+
+        <!-- Monthly Expense Card -->
+        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-semibold">Monthly Expense</h3>
+                <span class="material-symbols-outlined text-3xl">trending_down</span>
+            </div>
+            <p class="text-3xl font-bold">${{ "%.2f"|format(monthly_expense) }}</p>
+            <p class="text-red-100 text-sm mt-2">This month</p>
+        </div>
+    </div>
+
+    <!-- Budget Alerts -->
+    {% if budget_status %}
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <span class="material-symbols-outlined mr-2">savings</span>
+            Budget Status
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for budget in budget_status %}
+            <div
+                class="border {% if budget.is_exceeded %}border-red-300 bg-red-50{% else %}border-green-300 bg-green-50{% endif %} rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h4
+                            class="font-semibold {% if budget.is_exceeded %}text-red-900{% else %}text-green-900{% endif %}">
+                            {{ budget.category }}</h4>
+                        <p class="text-sm {% if budget.is_exceeded %}text-red-700{% else %}text-green-700{% endif %}">
+                            ${{ "%.2f"|format(budget.spent) }} / ${{ "%.2f"|format(budget.budget) }}
+                        </p>
+                    </div>
+                    <span
+                        class="material-symbols-outlined {% if budget.is_exceeded %}text-red-500{% else %}text-green-500{% endif %}">
+                        {% if budget.is_exceeded %}warning{% else %}check_circle{% endif %}
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="{% if budget.is_exceeded %}bg-red-500{% else %}bg-green-500{% endif %} h-2 rounded-full"
+                        style="width: {{ [budget.percentage, 100]|min }}%"></div>
+                </div>
+                <p class="text-xs {% if budget.is_exceeded %}text-red-600{% else %}text-green-600{% endif %} mt-1">
+                    {{ "%.1f"|format(budget.percentage) }}% used
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Credit Card Payments -->
+    {% if upcoming_payments %}
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <span class="material-symbols-outlined mr-2">credit_card</span>
+            Upcoming Credit Card Payments
+        </h2>
+        <div class="space-y-3">
+            {% for payment in upcoming_payments %}
+            <div
+                class="flex items-center justify-between p-4 {% if payment.is_urgent %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-lg">
+                <div class="flex items-center">
+                    <span
+                        class="material-symbols-outlined {% if payment.is_urgent %}text-red-500{% else %}text-blue-500{% endif %} mr-3">notifications</span>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">{{ payment.card_name }}</h4>
+                        <p class="text-sm text-gray-600">Due: Day {{ payment.due_date }} ({{ payment.days_until_due }}
+                            days)</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p
+                        class="font-bold {% if payment.is_urgent %}text-red-600{% else %}text-blue-600{% endif %} text-lg">
+                        ${{ "%.2f"|format(payment.amount) }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Expense Breakdown -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Expense Breakdown</h2>
+            <canvas id="expenseChart" style="max-height: 300px;"></canvas>
+        </div>
+
+        <!-- Weekly Trend -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Weekly Spending Trend</h2>
+            <canvas id="trendChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                <span class="material-symbols-outlined mr-2">receipt_long</span>
+                Recent Transactions
+            </h2>
+            <a href="/transactions" class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+                View All
+                <span class="material-symbols-outlined ml-1">arrow_forward</span>
+            </a>
+        </div>
+
+        {% if recent_transactions %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for txn in recent_transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ txn.date.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">
+                            <span class="material-symbols-outlined align-middle mr-1 text-lg
+                                {% if txn.type.value == 'income' %}text-green-500
+                                {% elif txn.type.value == 'expense' %}text-red-500
+                                {% else %}text-blue-500{% endif %}">
+                                {% if txn.type.value == 'income' %}add_circle
+                                {% elif txn.type.value == 'expense' %}remove_circle
+                                {% else %}sync_alt{% endif %}
+                            </span>
+                            {{ txn.description or 'No description' }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            {{ txn.category.name if txn.category else '-' }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold
+                            {% if txn.type.value == 'income' %}text-green-600
+                            {% elif txn.type.value == 'expense' %}text-red-600
+                            {% else %}text-blue-600{% endif %}">
+                            {% if txn.type.value == 'income' %}+{% elif txn.type.value == 'expense' %}-{% endif %}
+                            ${{ "%.2f"|format(txn.amount) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No transactions yet. Start tracking your expenses!</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Fetch and render charts
+    async function loadCharts() {
+        try {
+            // Expense Breakdown Pie Chart
+            const expenseRes = await fetch('/api/analytics/expense-breakdown');
+            const expenseData = await expenseRes.json();
+
+            if (expenseData.labels && expenseData.labels.length > 0) {
+                new Chart(document.getElementById('expenseChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: expenseData.labels,
+                        datasets: [{
+                            data: expenseData.values,
+                            backgroundColor: [
+                                '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+                                '#EC4899', '#6366F1', '#14B8A6', '#F97316', '#06B6D4'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Weekly Trend Line Chart
+            const trendRes = await fetch('/api/analytics/trend');
+            const trendData = await trendRes.json();
+
+            if (trendData.labels && trendData.labels.length > 0) {
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: 'Spending',
+                            data: trendData.values,
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading charts:', error);
+        }
+    }
+
+    loadCharts();
+</script>
+{% endblock %}
