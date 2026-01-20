@@ -261,7 +261,7 @@
             </button>
         </div>
         
-        <form method="POST" action="/transactions/create" enctype="multipart/form-data" class="space-y-4">
+        <form method="POST" action="/transactions/create" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transaction Type</label>
                 <div class="grid grid-cols-3 gap-2">
@@ -297,24 +297,10 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
-                <div>
+            <div class="grid grid-cols-1 gap-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Date</label>
-                    <input type="date" name="transaction_date" required value="{{ now().strftime('%Y-%m-%d') if now else '' }}"
+                    <input type="date" name="transaction_date" required value="{{ now().strftime('%Y-%m-%d') }}"
                         class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:[color-scheme:dark]">
-                </div>
-                <div>
-                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Receipt</label>
-                     <label class="block w-full text-sm text-gray-500 dark:text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 dark:file:bg-blue-900/20 file:text-blue-700 dark:file:text-blue-400
-                        hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40 cursor-pointer">
-                        <input type="file" name="receipt" accept="image/*,.pdf" class="hidden">
-                        <span class="inline-block px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-center hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">Upload</span>
-                    </label>
-                </div>
             </div>
             
             <div>

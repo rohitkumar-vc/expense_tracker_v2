@@ -98,7 +98,6 @@ async def create_transaction(
     category_id: int = Form(None),
     source_account_id: int = Form(None),
     dest_account_id: int = Form(None),
-    receipt: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     """Create a new transaction"""
@@ -108,22 +107,6 @@ async def create_transaction(
     
     # Parse date
     txn_date = datetime.strptime(transaction_date, "%Y-%m-%d").date()
-    
-    # Handle receipt upload
-    receipt_path = None
-    if receipt and receipt.filename:
-        settings.create_upload_dirs()
-        # Generate unique filename
-        ext = os.path.splitext(receipt.filename)[1]
-        filename = f"{uuid.uuid4()}{ext}"
-        filepath = os.path.join(settings.RECEIPTS_DIR, filename)
-        
-        # Save file
-        with open(filepath, "wb") as f:
-            content = await receipt.read()
-            f.write(content)
-        
-        receipt_path = filepath
     
     # Create transaction data
     transaction_data = {
@@ -135,7 +118,7 @@ async def create_transaction(
         "category_id": category_id if category_id else None,
         "source_account_id": source_account_id if source_account_id else None,
         "dest_account_id": dest_account_id if dest_account_id else None,
-        "receipt_path": receipt_path
+        "receipt_path": None
     }
     
     # Create transaction and update balances
@@ -203,13 +186,6 @@ async def delete_transaction(
     ).first()
     
     if transaction:
-        # Delete receipt file if exists
-        if transaction.receipt_path and os.path.exists(transaction.receipt_path):
-            try:
-                os.remove(transaction.receipt_path)
-            except:
-                pass
-        
         # Delete transaction and revert balances
         TransactionService.delete_transaction(db, transaction)
     

@@ -57,12 +57,6 @@ async def startup_event():
     """Initialize database on startup"""
     print("🚀 Starting Expense Flow...")
     
-    # Create upload directories
-    settings.create_upload_dirs()
-    
-    # Create upload directories
-    settings.create_upload_dirs()
-    
     # Just create tables if they don't exist (won't recreate existing ones)
     try:
         Base.metadata.create_all(bind=engine)

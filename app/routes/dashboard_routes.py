@@ -11,6 +11,7 @@ from datetime import datetime
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals.update(now=datetime.now)
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
