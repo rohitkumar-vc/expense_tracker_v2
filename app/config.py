@@ -5,6 +5,8 @@ load_dotenv()
 
 class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./expense_manager.db")
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads")
     RECEIPTS_DIR: str = os.path.join(UPLOAD_DIR, "receipts")

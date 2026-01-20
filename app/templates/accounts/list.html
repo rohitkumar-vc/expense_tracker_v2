@@ -3,216 +3,298 @@
 {% block title %}Accounts - Expense Manager{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-8">
     <!-- Header -->
-    <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">Accounts</h1>
-        <button onclick="document.getElementById('addAccountModal').classList.remove('hidden')"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center shadow-lg">
-            <span class="material-symbols-outlined mr-2">add</span>
-            Add Account
-        </button>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Accounts</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your bank accounts, credit cards, and cash.</p>
+        </div>
     </div>
 
     <!-- Bank Accounts -->
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <span class="material-symbols-outlined mr-2">account_balance</span>
-            Bank Accounts
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-gray-700/30">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400">
+                    <span class="material-symbols-outlined">account_balance</span>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Bank Accounts</h2>
+            </div>
+        </div>
+        <div class="p-4 md:p-6 grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for account in bank_accounts %}
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h3 class="font-bold text-gray-900">{{ account.name }}</h3>
-                        <p class="text-sm text-gray-600">{{ account.bank_name }}</p>
-                        <p class="text-xs text-gray-500">****{{ account.account_number or '0000' }}</p>
+            <div class="group bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:shadow-md transition-all duration-200 relative">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400">
+                        <span class="material-symbols-outlined">account_balance</span>
                     </div>
-                    <form method="POST" action="/accounts/{{ account.id }}/delete" class="inline"
-                        onsubmit="return confirm('Delete account?');">
-                        <button type="submit" class="text-red-500 hover:text-red-700">
-                            <span class="material-symbols-outlined">delete</span>
+                    <form method="POST" action="/accounts/{{ account.id }}/delete"
+                        onsubmit="return confirm('Delete this account?');">
+                        <button type="submit" class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <span class="material-symbols-outlined text-lg">delete</span>
                         </button>
                     </form>
                 </div>
-                <div class="border-t border-gray-200 pt-3">
-                    <p class="text-2xl font-bold text-blue-600">${{ "%.2f"|format(account.current_balance) }}</p>
-                    <p class="text-xs text-gray-500">Current Balance</p>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ "%.2f"|format(account.current_balance) }}</p>
+                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <span class="bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded mr-2">****{{ account.account_number or '0000' }}</span>
+                        Available Balance
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-600">
+                    <h3 class="font-medium text-gray-900 dark:text-white">{{ account.name }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ account.bank_name or 'Bank Account' }}</p>
                 </div>
             </div>
             {% endfor %}
-
-            {% if not bank_accounts %}
-            <p class="text-gray-500 col-span-full text-center py-4">No bank accounts yet</p>
-            {% endif %}
+            
+            <!-- Add New Button -->
+            <button onclick="openAddAccount('bank')" class="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-4 md:p-5 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-500 dark:hover:text-blue-400 transition-all duration-200 w-full min-h-[120px] md:min-h-[160px]">
+                <span class="material-symbols-outlined text-3xl mb-2">add_circle</span>
+                <span class="text-sm font-medium">Add Bank Account</span>
+            </button>
         </div>
-    </div>
+    </section>
 
     <!-- Credit Cards -->
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <span class="material-symbols-outlined mr-2">credit_card</span>
-            Credit Cards
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-gray-700/30">
+            <div class="flex items-center space-x-3">
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg text-purple-600 dark:text-purple-400">
+                    <span class="material-symbols-outlined">credit_card</span>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Credit Cards</h2>
+            </div>
+        </div>
+        <div class="p-4 md:p-6 grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for card in credit_cards %}
-            <div
-                class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-50 to-pink-50">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h3 class="font-bold text-gray-900">{{ card.name }}</h3>
-                        <p class="text-xs text-gray-500">Due: Day {{ card.due_date or 'N/A' }}</p>
+            <div class="group bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:shadow-md transition-all duration-200 relative">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-purple-50 dark:bg-purple-900/20 p-2 rounded-lg text-purple-600 dark:text-purple-400">
+                        <span class="material-symbols-outlined">credit_card</span>
                     </div>
-                    <form method="POST" action="/accounts/{{ card.id }}/delete" class="inline"
-                        onsubmit="return confirm('Delete card?');">
-                        <button type="submit" class="text-red-500 hover:text-red-700">
-                            <span class="material-symbols-outlined">delete</span>
+                    <form method="POST" action="/accounts/{{ card.id }}/delete"
+                        onsubmit="return confirm('Delete this card?');">
+                        <button type="submit" class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <span class="material-symbols-outlined text-lg">delete</span>
                         </button>
                     </form>
                 </div>
-                <div class="space-y-2">
+                
+                <div class="space-y-4">
                     <div>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="text-gray-600">Credit Used</span>
-                            <span class="font-semibold">${{ "%.2f"|format(card.used_amount) }} / ${{
-                                "%.2f"|format(card.total_limit) }}</span>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-lg">{{ card.name }}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">****{{ card.account_number or '0000' }}</p>
+                        {% if card.billing_date or card.due_date %}
+                        <div class="flex gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {% if card.billing_date %}<span>Bill: Day {{ card.billing_date }}</span>{% endif %}
+                            {% if card.due_date %}<span>Due: Day {{ card.due_date }}</span>{% endif %}
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-purple-600 h-2 rounded-full"
-                                style="width: {{ [(card.used_amount / card.total_limit * 100) if card.total_limit > 0 else 0, 100]|min }}%">
-                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-gray-600 dark:text-gray-400 font-medium">Utilization</span>
+                            <span class="text-gray-900 dark:text-gray-200">₹{{ "%.2f"|format(card.used_amount) }} / ₹{{ "%.2f"|format(card.total_limit) }}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-purple-600 dark:bg-purple-500 h-1.5 rounded-full"
+                                style="width: {{ (card.used_amount / card.total_limit * 100) if card.total_limit > 0 else 0 }}%"></div>
                         </div>
                     </div>
-                    <p class="text-lg font-bold text-green-600">
-                        Available: ${{ "%.2f"|format(card.total_limit - card.used_amount) }}
-                    </p>
+
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Available</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">₹{{ "%.2f"|format(card.total_limit - card.used_amount) }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endfor %}
-
-            {% if not credit_cards %}
-            <p class="text-gray-500 col-span-full text-center py-4">No credit cards yet</p>
-            {% endif %}
+            
+            <!-- Add New Button -->
+            <!-- Add New Button -->
+            <button onclick="openAddAccount('credit_card')" class="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-4 md:p-5 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:border-purple-500 dark:hover:border-purple-400 hover:text-purple-500 dark:hover:text-purple-400 transition-all duration-200 w-full min-h-[180px] md:min-h-[220px]">
+                <span class="material-symbols-outlined text-3xl mb-2">add_card</span>
+                <span class="text-sm font-medium">Add Credit Card</span>
+            </button>
         </div>
-    </div>
+    </section>
 
     <!-- Cash Wallet -->
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <span class="material-symbols-outlined mr-2">money</span>
-            Cash Wallet
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 dark:bg-gray-700/30">
+            <div class="flex items-center space-x-3">
+                <div class="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-green-600 dark:text-green-400">
+                    <span class="material-symbols-outlined">wallet</span>
+                </div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Cash Wallet</h2>
+            </div>
+        </div>
+        <div class="p-4 md:p-6 grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {% for cash in cash_accounts %}
-            <div
-                class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-emerald-50">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="font-bold text-gray-900">{{ cash.name }}</h3>
-                    <form method="POST" action="/accounts/{{ cash.id }}/delete" class="inline"
-                        onsubmit="return confirm('Delete cash wallet?');">
-                        <button type="submit" class="text-red-500 hover:text-red-700">
-                            <span class="material-symbols-outlined">delete</span>
+            <div class="group bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:shadow-md transition-all duration-200 relative">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-green-600 dark:text-green-400">
+                        <span class="material-symbols-outlined">wallet</span>
+                    </div>
+                    <form method="POST" action="/accounts/{{ cash.id }}/delete"
+                        onsubmit="return confirm('Delete this cash wallet?');">
+                        <button type="submit" class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <span class="material-symbols-outlined text-lg">delete</span>
                         </button>
                     </form>
                 </div>
-                <p class="text-2xl font-bold text-green-600">${{ "%.2f"|format(cash.current_balance) }}</p>
-                <p class="text-xs text-gray-500">Cash Balance</p>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ "%.2f"|format(cash.current_balance) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Current Balance</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-600">
+                    <h3 class="font-medium text-gray-900 dark:text-white">{{ cash.name }}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Physical Cash</p>
+                </div>
             </div>
             {% endfor %}
 
-            {% if not cash_accounts %}
-            <p class="text-gray-500 col-span-full text-center py-4">No cash wallet yet</p>
-            {% endif %}
+            <!-- Add New Button -->
+            <!-- Add New Button -->
+            <button onclick="openAddAccount('cash')" class="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-4 md:p-5 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:border-green-500 dark:hover:border-green-400 hover:text-green-500 dark:hover:text-green-400 transition-all duration-200 w-full min-h-[120px] md:min-h-[160px]">
+                <span class="material-symbols-outlined text-3xl mb-2">add_circle</span>
+                <span class="text-sm font-medium">Add Cash Wallet</span>
+            </button>
         </div>
-    </div>
+    </section>
 </div>
 
 <!-- Add Account Modal -->
-<div id="addAccountModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-screen overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">Add Account</h3>
-            <button onclick="document.getElementById('addAccountModal').classList.add('hidden')">
+<div id="addAccountModal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Add New Account</h3>
+            <button onclick="document.getElementById('addAccountModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-
+        
         <form method="POST" action="/accounts/create" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium mb-1">Account Type *</label>
-                <select name="account_type" id="accountType" required onchange="toggleFields()"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Account Type</label>
+                <select name="account_type" id="accountType" onchange="toggleFields()" required
+                    class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" disabled selected>Select Type</option>
                     <option value="bank">Bank Account</option>
                     <option value="credit_card">Credit Card</option>
                     <option value="cash">Cash Wallet</option>
                 </select>
             </div>
-
+            
             <div>
-                <label class="block text-sm font-medium mb-1">Account Name *</label>
-                <input type="text" name="name" required
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Account Name</label>
+                <input type="text" name="name" required placeholder="e.g. Chase Checking"
+                    class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
-
+            
             <div id="bankFields">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Bank Name</label>
-                    <input type="text" name="bank_name"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Account Number (Last 4 digits)</label>
-                    <input type="text" name="account_number" maxlength="4"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Bank Name</label>
+                    <input type="text" name="bank_name" placeholder="e.g. Chase"
+                        class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Initial Balance</label>
-                    <input type="number" name="initial_balance" step="0.01" value="0"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Account Number (Last 4 digits)</label>
+                    <input type="text" name="account_number" maxlength="4" placeholder="1234"
+                        class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
-
-            <div id="ccFields" class="hidden">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Credit Limit *</label>
-                    <input type="number" name="total_limit" step="0.01"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Billing Date (Day of Month)</label>
-                    <input type="number" name="billing_date" min="1" max="31"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
+            
+            <div id="ccFields" class="hidden space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Due Date (Day of Month)</label>
-                    <input type="number" name="due_date" min="1" max="31"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Credit Limit</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 dark:text-gray-400">$</span>
+                        </div>
+                        <input type="number" name="total_limit" step="0.01" placeholder="5000"
+                            class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 p-2.5">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Billing Day</label>
+                        <input type="number" name="billing_date" min="1" max="31" placeholder="1-31"
+                            class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Due Day</label>
+                        <input type="number" name="due_date" min="1" max="31" placeholder="1-31"
+                            class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    </div>
                 </div>
             </div>
 
             <div id="cashFields" class="hidden">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Initial Cash</label>
-                    <input type="number" name="initial_balance" step="0.01" value="0"
-                        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Initial Cash</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 dark:text-gray-400">$</span>
+                        </div>
+                        <input type="number" name="initial_balance" step="0.01" value="0"
+                            class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 p-2.5">
+                    </div>
                 </div>
             </div>
 
-            <button type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
-                Add Account
-            </button>
+            <div class="pt-2">
+                <button type="submit"
+                    class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors">
+                    Add Account
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
 <script>
+    function openAddAccount(type) {
+        document.getElementById('addAccountModal').classList.remove('hidden');
+        if (type) {
+            document.getElementById('accountType').value = type;
+        } else {
+            document.getElementById('accountType').value = ""; // Reset if no type passed
+        }
+        toggleFields();
+    }
+
     function toggleFields() {
         const type = document.getElementById('accountType').value;
-        document.getElementById('bankFields').classList.toggle('hidden', type !== 'bank');
-        document.getElementById('ccFields').classList.toggle('hidden', type !== 'credit_card');
-        document.getElementById('cashFields').classList.toggle('hidden', type !== 'cash');
+        const bankFields = document.getElementById('bankFields');
+        const ccFields = document.getElementById('ccFields');
+        const cashFields = document.getElementById('cashFields');
+        
+        // Hide all first and disable inputs
+        [bankFields, ccFields, cashFields].forEach(el => {
+            el.classList.add('hidden');
+            el.querySelectorAll('input').forEach(input => input.disabled = true);
+        });
+        
+        // Enable required inputs based on type
+        let activeField;
+        if (type === 'bank') activeField = bankFields;
+        else if (type === 'credit_card') activeField = ccFields;
+        else if (type === 'cash') activeField = cashFields;
+
+        if (activeField) {
+            activeField.classList.remove('hidden');
+            activeField.querySelectorAll('input').forEach(input => input.disabled = false);
+        }
     }
+    
+    // Initial call
+    toggleFields();
 </script>
 {% endblock %}

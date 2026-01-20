@@ -9,11 +9,16 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-gray-600">Welcome back, {{ user.name or user.user_id }}!</p>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+            <p class="text-gray-600 dark:text-gray-400">Welcome back, {{ user.name or user.user_id }}!</p>
         </div>
+        <button onclick="document.getElementById('addTxnModal').classList.remove('hidden')"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center shadow-lg transition-colors">
+            <span class="material-symbols-outlined mr-2">add</span>
+            Quick Add
+        </button>
     </div>
 
     <!-- Success Message -->
@@ -26,69 +31,113 @@
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Net Worth Card -->
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-semibold">Net Worth</h3>
-                <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+        <!-- Monthly Expense Card (First Priority) -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Expense</h3>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-2">
+                    <span class="material-symbols-outlined text-red-600 dark:text-red-400">trending_down</span>
+                </div>
             </div>
-            <p class="text-3xl font-bold">${{ "%.2f"|format(net_worth) }}</p>
-            <p class="text-blue-100 text-sm mt-2">Total Assets - Liabilities</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">₹{{ "%.2f"|format(monthly_expense) }}</p>
+            <div class="mt-4 flex items-center text-sm text-red-600 dark:text-red-400">
+                <span class="material-symbols-outlined text-lg mr-1">calendar_today</span>
+                This month
+            </div>
         </div>
 
         <!-- Monthly Income Card -->
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-semibold">Monthly Income</h3>
-                <span class="material-symbols-outlined text-3xl">trending_up</span>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Monthly Income</h3>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
+                    <span class="material-symbols-outlined text-green-600 dark:text-green-400">trending_up</span>
+                </div>
             </div>
-            <p class="text-3xl font-bold">${{ "%.2f"|format(monthly_income) }}</p>
-            <p class="text-green-100 text-sm mt-2">This month</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">₹{{ "%.2f"|format(monthly_income) }}</p>
+            <div class="mt-4 flex items-center text-sm text-green-600 dark:text-green-400">
+                <span class="material-symbols-outlined text-lg mr-1">calendar_today</span>
+                This month
+            </div>
         </div>
 
-        <!-- Monthly Expense Card -->
-        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-semibold">Monthly Expense</h3>
-                <span class="material-symbols-outlined text-3xl">trending_down</span>
+        <!-- Net Worth Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Net Worth</h3>
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2">
+                    <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">account_balance_wallet</span>
+                </div>
             </div>
-            <p class="text-3xl font-bold">${{ "%.2f"|format(monthly_expense) }}</p>
-            <p class="text-red-100 text-sm mt-2">This month</p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">₹{{ "%.2f"|format(net_worth) }}</p>
+            <div class="mt-4 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 text-lg mr-1">info</span>
+                Total Assets - Liabilities
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row (Visuals First) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Expense Breakdown -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Expense Breakdown</h2>
+            <div class="relative">
+                <canvas id="expenseChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Weekly Trend -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Weekly Spending Trend</h2>
+            <div class="relative">
+                <canvas id="trendChart" style="max-height: 300px;"></canvas>
+            </div>
         </div>
     </div>
 
     <!-- Budget Alerts -->
     {% if budget_status %}
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <span class="material-symbols-outlined mr-2">savings</span>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+            <span class="material-symbols-outlined mr-2 text-gray-900 dark:text-gray-100">savings</span>
             Budget Status
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for budget in budget_status %}
-            <div
-                class="border {% if budget.is_exceeded %}border-red-300 bg-red-50{% else %}border-green-300 bg-green-50{% endif %} rounded-lg p-4">
-                <div class="flex justify-between items-start mb-2">
+            <div class="bg-white dark:bg-gray-800 border {% if budget.is_exceeded %}border-red-200 dark:border-red-900/50{% else %}border-gray-100 dark:border-gray-700{% endif %} rounded-xl p-5 hover:shadow-sm transition-shadow">
+                <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h4
-                            class="font-semibold {% if budget.is_exceeded %}text-red-900{% else %}text-green-900{% endif %}">
-                            {{ budget.category }}</h4>
-                        <p class="text-sm {% if budget.is_exceeded %}text-red-700{% else %}text-green-700{% endif %}">
-                            ${{ "%.2f"|format(budget.spent) }} / ${{ "%.2f"|format(budget.budget) }}
-                        </p>
+                        <h4 class="font-semibold text-gray-900 dark:text-white">{{ budget.category }}</h4>
+                        <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="font-medium {% if budget.is_exceeded %}text-red-600 dark:text-red-400{% else %}text-gray-900 dark:text-gray-200{% endif %}">₹{{ "%.2f"|format(budget.spent) }}</span>
+                            <span class="mx-1">/</span>
+                            <span>₹{{ "%.2f"|format(budget.budget) }}</span>
+                        </div>
                     </div>
-                    <span
-                        class="material-symbols-outlined {% if budget.is_exceeded %}text-red-500{% else %}text-green-500{% endif %}">
-                        {% if budget.is_exceeded %}warning{% else %}check_circle{% endif %}
+                    {% if budget.is_exceeded %}
+                    <span class="flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+                        <span class="material-symbols-outlined text-sm mr-1">warning</span>
+                        Over Budget
                     </span>
+                    {% else %}
+                    <span class="flex items-center px-2 py-1 rounded text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400">
+                        <span class="material-symbols-outlined text-sm mr-1">check_circle</span>
+                        On Track
+                    </span>
+                    {% endif %}
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="{% if budget.is_exceeded %}bg-red-500{% else %}bg-green-500{% endif %} h-2 rounded-full"
-                        style="width: {{ [budget.percentage, 100]|min }}%"></div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Progress</span>
+                        <span class="{% if budget.is_exceeded %}text-red-600 dark:text-red-400 font-medium{% endif %}">{{ "%.0f"|format(budget.percentage) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div class="{% if budget.is_exceeded %}bg-red-500{% else %}bg-green-500{% endif %} h-2 rounded-full transition-all duration-500"
+                            style="width: {{ [budget.percentage, 100]|min }}%"></div>
+                    </div>
                 </div>
-                <p class="text-xs {% if budget.is_exceeded %}text-red-600{% else %}text-green-600{% endif %} mt-1">
-                    {{ "%.1f"|format(budget.percentage) }}% used
-                </p>
             </div>
             {% endfor %}
         </div>
@@ -97,29 +146,29 @@
 
     <!-- Upcoming Credit Card Payments -->
     {% if upcoming_payments %}
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <span class="material-symbols-outlined mr-2">credit_card</span>
-            Upcoming Credit Card Payments
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+            <span class="material-symbols-outlined mr-2 text-gray-900 dark:text-gray-100">credit_card</span>
+            Upcoming Payments
         </h2>
-        <div class="space-y-3">
+        <div class="space-y-4">
             {% for payment in upcoming_payments %}
-            <div
-                class="flex items-center justify-between p-4 {% if payment.is_urgent %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-lg">
-                <div class="flex items-center">
-                    <span
-                        class="material-symbols-outlined {% if payment.is_urgent %}text-red-500{% else %}text-blue-500{% endif %} mr-3">notifications</span>
+            <div class="flex items-center justify-between p-4 rounded-xl border {% if payment.is_urgent %}border-red-200 bg-red-50/30 dark:bg-red-900/10 dark:border-red-900/50{% else %}border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50{% endif %} transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="p-2 rounded-lg {% if payment.is_urgent %}bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400{% else %}bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400{% endif %}">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </div>
                     <div>
-                        <h4 class="font-semibold text-gray-900">{{ payment.card_name }}</h4>
-                        <p class="text-sm text-gray-600">Due: Day {{ payment.due_date }} ({{ payment.days_until_due }}
-                            days)</p>
+                        <h4 class="font-semibold text-gray-900 dark:text-white">{{ payment.card_name }}</h4>
+                        <div class="flex items-center mt-1 text-sm {% if payment.is_urgent %}text-red-600 dark:text-red-400 font-medium{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                            <span class="material-symbols-outlined text-sm mr-1">calendar_clock</span>
+                            Due in {{ payment.days_until_due }} days (Day {{ payment.due_date }})
+                        </div>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p
-                        class="font-bold {% if payment.is_urgent %}text-red-600{% else %}text-blue-600{% endif %} text-lg">
-                        ${{ "%.2f"|format(payment.amount) }}
-                    </p>
+                    <p class="font-bold text-gray-900 dark:text-white text-lg">₹{{ "%.2f"|format(payment.amount) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Due Amount</p>
                 </div>
             </div>
             {% endfor %}
@@ -127,69 +176,63 @@
     </div>
     {% endif %}
 
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Expense Breakdown -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Expense Breakdown</h2>
-            <canvas id="expenseChart" style="max-height: 300px;"></canvas>
-        </div>
-
-        <!-- Weekly Trend -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Weekly Spending Trend</h2>
-            <canvas id="trendChart" style="max-height: 300px;"></canvas>
-        </div>
-    </div>
 
     <!-- Recent Transactions -->
-    <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                <span class="material-symbols-outlined mr-2">receipt_long</span>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                <span class="material-symbols-outlined mr-2 text-gray-900 dark:text-gray-100">receipt_long</span>
                 Recent Transactions
             </h2>
-            <a href="/transactions" class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center">
+            <a href="/transactions" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center transition-colors">
                 View All
-                <span class="material-symbols-outlined ml-1">arrow_forward</span>
+                <span class="material-symbols-outlined ml-1 text-base">arrow_forward</span>
             </a>
         </div>
 
         {% if recent_transactions %}
         <div class="overflow-x-auto">
             <table class="min-w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-gray-50/50 dark:bg-gray-700/50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     {% for txn in recent_transactions %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900">{{ txn.date.strftime('%Y-%m-%d') }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">
-                            <span class="material-symbols-outlined align-middle mr-1 text-lg
-                                {% if txn.type.value == 'income' %}text-green-500
-                                {% elif txn.type.value == 'expense' %}text-red-500
-                                {% else %}text-blue-500{% endif %}">
-                                {% if txn.type.value == 'income' %}add_circle
-                                {% elif txn.type.value == 'expense' %}remove_circle
-                                {% else %}sync_alt{% endif %}
+                    <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">{{ txn.date.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                            <div class="flex items-center">
+                                <span class="material-symbols-outlined align-middle mr-2.5 text-lg
+                                    {% if txn.type.value == 'income' %}text-green-500
+                                    {% elif txn.type.value == 'expense' %}text-red-500
+                                    {% else %}text-blue-500{% endif %}">
+                                    {% if txn.type.value == 'income' %}add_circle
+                                    {% elif txn.type.value == 'expense' %}remove_circle
+                                    {% else %}sync_alt{% endif %}
+                                </span>
+                                <span class="font-medium">{{ txn.description or 'No description' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {% if txn.category %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                                {{ txn.category.name }}
                             </span>
-                            {{ txn.description or 'No description' }}
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-600">
-                            {{ txn.category.name if txn.category else '-' }}
-                        </td>
-                        <td class="px-4 py-3 text-sm text-right font-semibold
-                            {% if txn.type.value == 'income' %}text-green-600
-                            {% elif txn.type.value == 'expense' %}text-red-600
-                            {% else %}text-blue-600{% endif %}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold font-mono tracking-tight
+                            {% if txn.type.value == 'income' %}text-green-600 dark:text-green-400
+                            {% elif txn.type.value == 'expense' %}text-red-600 dark:text-red-400
+                            {% else %}text-blue-600 dark:text-blue-400{% endif %}">
                             {% if txn.type.value == 'income' %}+{% elif txn.type.value == 'expense' %}-{% endif %}
-                            ${{ "%.2f"|format(txn.amount) }}
+                            ₹{{ "%.2f"|format(txn.amount) }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -197,8 +240,125 @@
             </table>
         </div>
         {% else %}
-        <p class="text-gray-500 text-center py-8">No transactions yet. Start tracking your expenses!</p>
+        <div class="text-center py-12">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500">receipt_long</span>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">No transactions yet.</p>
+            <a href="/transactions" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-2 inline-block">Record your first transaction</a>
+        </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div id="addTxnModal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Add Transaction</h3>
+            <button onclick="document.getElementById('addTxnModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <form method="POST" action="/transactions/create" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Transaction Type</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transaction_type" value="income" class="peer sr-only" onchange="toggleTxnFields()" id="typeIncome">
+                        <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 peer-checked:bg-green-50 dark:peer-checked:bg-green-900/20 peer-checked:border-green-200 dark:peer-checked:border-green-900/50 peer-checked:text-green-700 dark:peer-checked:text-green-400 rounded-lg py-2 text-center text-sm font-medium transition-colors text-gray-700 dark:text-gray-300">
+                            Income
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transaction_type" value="expense" class="peer sr-only" onchange="toggleTxnFields()" id="typeExpense" checked>
+                        <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 peer-checked:bg-red-50 dark:peer-checked:bg-red-900/20 peer-checked:border-red-200 dark:peer-checked:border-red-900/50 peer-checked:text-red-700 dark:peer-checked:text-red-400 rounded-lg py-2 text-center text-sm font-medium transition-colors text-gray-700 dark:text-gray-300">
+                            Expense
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="transaction_type" value="transfer" class="peer sr-only" onchange="toggleTxnFields()" id="typeTransfer">
+                        <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20 peer-checked:border-blue-200 dark:peer-checked:border-blue-900/50 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 rounded-lg py-2 text-center text-sm font-medium transition-colors text-gray-700 dark:text-gray-300">
+                            Transfer
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Amount</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 dark:text-gray-400 font-bold">₹</span>
+                    </div>
+                    <input type="number" name="amount" step="0.01" required placeholder="0.00"
+                        class="pl-8 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Date</label>
+                    <input type="date" name="transaction_date" required value="{{ now().strftime('%Y-%m-%d') if now else '' }}"
+                        class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:[color-scheme:dark]">
+                </div>
+                <div>
+                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Receipt</label>
+                     <label class="block w-full text-sm text-gray-500 dark:text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 dark:file:bg-blue-900/20 file:text-blue-700 dark:file:text-blue-400
+                        hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40 cursor-pointer">
+                        <input type="file" name="receipt" accept="image/*,.pdf" class="hidden">
+                        <span class="inline-block px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg w-full text-center hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">Upload</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
+                <input type="text" name="description" placeholder="What was this for?"
+                    class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+            
+            <div id="categoryField">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+                <select name="category_id" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Select Category</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" data-type="{{ cat.type.value }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div id="sourceField">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Source Account</label>
+                <select name="source_account_id" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Select Account</option>
+                    {% for acc in accounts %}
+                    <option value="{{ acc.id }}">{{ acc.name }} ({{ acc.type.value }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div id="destField" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Destination Account</label>
+                <select name="dest_account_id" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Select Account</option>
+                    {% for acc in accounts %}
+                    <option value="{{ acc.id }}">{{ acc.name }} ({{ acc.type.value }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors shadow-sm">
+                    Save Transaction
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -206,6 +366,10 @@
     // Fetch and render charts
     async function loadCharts() {
         try {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#6b7280';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+
             // Expense Breakdown Pie Chart
             const expenseRes = await fetch('/api/analytics/expense-breakdown');
             const expenseData = await expenseRes.json();
@@ -220,7 +384,9 @@
                             backgroundColor: [
                                 '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
                                 '#EC4899', '#6366F1', '#14B8A6', '#F97316', '#06B6D4'
-                            ]
+                            ],
+                            borderColor: isDark ? '#1f2937' : '#ffffff',
+                            borderWidth: 2
                         }]
                     },
                     options: {
@@ -228,7 +394,8 @@
                         maintainAspectRatio: true,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                position: 'bottom',
+                                labels: { color: textColor }
                             }
                         }
                     }
@@ -257,13 +424,17 @@
                         responsive: true,
                         maintainAspectRatio: true,
                         plugins: {
-                            legend: {
-                                display: false
-                            }
+                            legend: { display: false }
                         },
                         scales: {
                             y: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor }
                             }
                         }
                     }
@@ -275,5 +446,43 @@
     }
 
     loadCharts();
+
+    function toggleTxnFields() {
+        let type = 'expense';
+        if (document.getElementById('typeIncome').checked) type = 'income';
+        if (document.getElementById('typeTransfer').checked) type = 'transfer';
+        
+        document.getElementById('destField').classList.toggle('hidden', type !== 'transfer');
+        document.getElementById('categoryField').classList.toggle('hidden', type === 'transfer');
+
+        // Filter categories
+        const categorySelect = document.querySelector('select[name="category_id"]');
+        const options = categorySelect.querySelectorAll('option');
+        
+        options.forEach(opt => {
+            if (!opt.value) return; // Skip placeholder
+            
+            const catType = opt.getAttribute('data-type');
+            if (type === 'transfer') {
+                // Categories hidden for transfer anyway
+            } else {
+                if (catType === type) {
+                    opt.hidden = false;
+                    opt.disabled = false;
+                } else {
+                    opt.hidden = true;
+                    opt.disabled = true;
+                }
+            }
+        });
+        
+        // Reset selection if filtered out
+        if (categorySelect.selectedOptions[0] && categorySelect.selectedOptions[0].hidden) {
+            categorySelect.value = "";
+        }
+    }
+    
+    // Initial call
+    toggleTxnFields();
 </script>
 {% endblock %}

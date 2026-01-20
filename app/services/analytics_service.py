@@ -191,4 +191,7 @@ class AnalyticsService:
                 'is_exceeded': spent > budget.amount
             })
         
+        # Sort by percentage descending (highest risk first)
+        result.sort(key=lambda x: x['percentage'], reverse=True)
+        
         return result

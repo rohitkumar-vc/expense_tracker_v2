@@ -17,12 +17,13 @@ from app.routes import (
     transaction_routes,
     budget_routes,
     category_routes,
-    export_routes
+    export_routes,
+    settings_routes
 )
 
 # Create FastAPI app
 app = FastAPI(
-    title="Expense Manager",
+    title="Expense Flow",
     description="Personal expense management system",
     version="1.0.0"
 )
@@ -48,29 +49,41 @@ app.include_router(transaction_routes.router)
 app.include_router(budget_routes.router)
 app.include_router(category_routes.router)
 app.include_router(export_routes.router)
+app.include_router(settings_routes.router)
 
 # Startup event
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on startup"""
-    print("🚀 Starting Expense Manager...")
+    print("🚀 Starting Expense Flow...")
     
     # Create upload directories
     settings.create_upload_dirs()
     
     # Check if database needs initialization
+    is_sqlite = "sqlite" in settings.DATABASE_URL
     db_file = "expense_manager.db"
-    if not os.path.exists(db_file) or os.path.getsize(db_file) == 0:
-        print("📊 Initializing database for the first time...")
+    
+    should_init = False
+    if is_sqlite:
+        if not os.path.exists(db_file) or os.path.getsize(db_file) == 0:
+            should_init = True
+    else:
+        # For non-sqlite (Postgres), we always try init/migration or ideally check tables
+        # For now, running init_database is safe (idempotent)
+        should_init = True
+
+    if should_init:
+        print("📊 Initializing database...")
         init_database()
     else:
         # Just create tables if they don't exist (won't recreate existing ones)
         Base.metadata.create_all(bind=engine)
         print("✓ Database connected")
     
-    print("✅ Expense Manager is ready!")
+    print("✅ Expense Flow is ready!")
     print(f"📱 Access the application at: http://localhost:8000")
-    print(f"👤 Default admin: adminExpense / adminExpense")
+
 
 
 # Error handlers

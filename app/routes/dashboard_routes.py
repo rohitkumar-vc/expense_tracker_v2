@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.database import get_db
-from app.models import User, Account, Transaction, AccountType
+from app.models import User, Account, Transaction, Category, AccountType
 from app.auth import get_current_user
 from app.services.analytics_service import AnalyticsService
 from datetime import datetime
@@ -62,6 +62,10 @@ async def dashboard(request: Request, db: Session = Depends(get_db), success: st
     
     # Sort by urgency
     upcoming_payments.sort(key=lambda x: x['days_until_due'])
+
+    # Get accounts and categories for modal
+    accounts = db.query(Account).filter(Account.user_id == user.id).all()
+    categories = db.query(Category).filter(Category.user_id == user.id).all()
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -72,6 +76,8 @@ async def dashboard(request: Request, db: Session = Depends(get_db), success: st
         "recent_transactions": recent_transactions,
         "budget_status": budget_status,
         "upcoming_payments": upcoming_payments,
+        "accounts": accounts,
+        "categories": categories,
         "success": success
     })
 
