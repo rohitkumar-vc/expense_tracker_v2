@@ -33,7 +33,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db), success: st
     # Get recent transactions
     recent_transactions = db.query(Transaction).filter(
         Transaction.user_id == user.id
-    ).order_by(desc(Transaction.date), desc(Transaction.created_at)).limit(10).all()
+    ).order_by(desc(Transaction.date), desc(Transaction.created_at)).limit(5).all()
     
     # Get budget status
     budget_status = AnalyticsService.get_budget_status(db, user.id)

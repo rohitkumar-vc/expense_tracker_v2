@@ -108,6 +108,12 @@ async def create_transaction(
     # Parse date
     txn_date = datetime.strptime(transaction_date, "%Y-%m-%d").date()
     
+    # Logic to handle account mapping based on type
+    # For Income: User selects 'Source Account' in UI, but it effectively acts as Destination (Deposit To)
+    if transaction_type == "income" and source_account_id:
+        dest_account_id = source_account_id
+        source_account_id = None
+
     # Create transaction data
     transaction_data = {
         "type": TransactionType(transaction_type.lower()),
