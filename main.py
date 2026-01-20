@@ -60,29 +60,17 @@ async def startup_event():
     # Create upload directories
     settings.create_upload_dirs()
     
-    # Check if database needs initialization
-    is_sqlite = "sqlite" in settings.DATABASE_URL
-    db_file = "expense_manager.db"
+    # Create upload directories
+    settings.create_upload_dirs()
     
-    should_init = False
-    if is_sqlite:
-        if not os.path.exists(db_file) or os.path.getsize(db_file) == 0:
-            should_init = True
-    else:
-        # For non-sqlite (Postgres), we always try init/migration or ideally check tables
-        # For now, running init_database is safe (idempotent)
-        should_init = True
-
-    if should_init:
-        print("📊 Initializing database...")
-        init_database()
-    else:
-        # Just create tables if they don't exist (won't recreate existing ones)
+    # Just create tables if they don't exist (won't recreate existing ones)
+    try:
         Base.metadata.create_all(bind=engine)
-        print("✓ Database connected")
+        print("✓ Database tables verified/connected")
+    except Exception as e:
+        print(f"⚠️  Database connection warning: {e}")
     
     print("✅ Expense Flow is ready!")
-    print(f"📱 Access the application at: http://localhost:8000")
 
 
 
