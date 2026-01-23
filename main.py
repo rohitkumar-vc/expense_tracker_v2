@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.database import Base, engine
@@ -79,6 +79,10 @@ async def not_found_handler(request: Request, exc):
 async def server_error_handler(request: Request, exc):
     templates = Jinja2Templates(directory="app/templates")
     return templates.TemplateResponse("500.html", {"request": request}, status_code=500)
+
+@app.get("/health-check")
+def read_root():
+    return JSONResponse(content="ok")
 
 
 if __name__ == "__main__":
